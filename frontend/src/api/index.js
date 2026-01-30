@@ -98,5 +98,26 @@ export const api = {
       throw new Error(error.detail || 'Delete failed')
     }
     return res.json()
+  },
+
+  // Scraper
+  async scrapeAccount(username, maxReels = 50) {
+    const res = await fetch(`${API_BASE}/scrape/${encodeURIComponent(username)}?max_reels=${maxReels}`)
+    if (!res.ok) {
+      const error = await res.json()
+      throw new Error(error.detail || 'Scrape failed')
+    }
+    return res.json()
+  },
+
+  async scrapeAndDownload(username, maxReels = 50) {
+    const res = await fetch(`${API_BASE}/scrape/${encodeURIComponent(username)}/download?max_reels=${maxReels}`, {
+      method: 'POST'
+    })
+    if (!res.ok) {
+      const error = await res.json()
+      throw new Error(error.detail || 'Scrape failed')
+    }
+    return res.json()
   }
 }

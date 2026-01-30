@@ -4,6 +4,7 @@ import { api } from './api/index.js'
 
 // State
 const urlInput = ref('')
+const inputMode = ref('url') // 'url' or 'account'
 const queue = ref([])
 const history = ref([])
 const videos = ref([])
@@ -173,9 +174,9 @@ async function addUrls() {
     if (added.length > 0) {
       queue.value.push(...added)
       urlInput.value = ''
-      showToast(`已加入 ${added.length} 個網址到佇列`, 'success')
+      showToast(`已加入 ${added.length} 個網址`, 'success')
     } else {
-      showToast('沒有新增任何網址（可能已存在）', 'warning')
+      showToast('網址已存在', 'warning')
     }
   } catch (e) {
     showToast('加入失敗：' + (e.message || '請檢查網址格式'), 'error')
@@ -419,25 +420,27 @@ onUnmounted(() => {
     <!-- Header -->
     <header class="header">
       <h1>ReelPull</h1>
-      <p>Instagram Reels Downloader</p>
+      <p>Download Instagram Reels</p>
     </header>
 
-    <!-- URL Input Section -->
-    <section class="section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <span>🔗</span> 貼上網址
-        </h2>
-        <div class="status-indicator">
-          <span class="status-dot" :class="{ running: isRunning, stopping: isStopping }"></span>
-          {{ isStopping ? '停止中...' : isRunning ? '下載中' : '已停止' }}
-        </div>
-      </div>
+    <!-- Mode Toggle -->
+    <div class="mode-toggle">
+      <button
+        :class="['mode-btn', { active: inputMode === 'url' }]"
+        @click="inputMode = 'url'"
+      >網址</button>
+      <button
+        :class="['mode-btn', { active: inputMode === 'account' }]"
+        @click="inputMode = 'account'"
+      >帳號</button>
+    </div>
 
+    <!-- URL Input -->
+    <div v-if="inputMode === 'url'" class="input-section">
       <textarea
         v-model="urlInput"
         class="url-input"
-        placeholder="貼上 Instagram Reel 網址（每行一個）&#10;&#10;例如：&#10;https://www.instagram.com/reel/ABC123/&#10;https://www.instagram.com/reel/DEF456/"
+        placeholder="貼上 Instagram Reel 網址..."
         :disabled="isLoading.addQueue"
       ></textarea>
 
@@ -463,34 +466,43 @@ onUnmounted(() => {
 
         <button
           v-else
-          class="btn btn-stop"
+          class="btn btn-danger"
           @click="stopDownload"
           :disabled="isStopping || isLoading.stop"
         >
           <span v-if="isLoading.stop" class="spinner"></span>
-          {{ isStopping ? '停止中...' : '停止下載' }}
+          {{ isStopping ? '停止中...' : '停止' }}
         </button>
       </div>
-    </section>
+    </div>
 
-    <!-- Current Progress -->
-    <section v-if="currentTask" class="section progress-section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <span>📥</span> 下載進度
-        </h2>
+    <!-- Account Mode - 提示用外部工具 -->
+    <div v-else class="input-section">
+      <div class="external-tool-hint">
+        <p class="hint-title">如何批量下載帳號的所有 Reels？</p>
+        <ol class="hint-steps">
+          <li>前往 <a href="https://saveclip.app/zh-tw/instagram-reels-download" target="_blank">SaveClip.app</a></li>
+          <li>貼上帳號的 Reels 頁面網址（如 instagram.com/帳號/reels/）</li>
+          <li>依照指示複製頁面源碼</li>
+          <li>取得所有 Reel 連結後，切回「網址」模式貼上</li>
+        </ol>
+        <button class="btn btn-secondary" @click="inputMode = 'url'">
+          切換到網址模式
+        </button>
       </div>
-      <div class="current-task">
-        <div class="task-url">{{ formatUrl(currentTask.url) }}</div>
-        <div class="progress-bar-container">
-          <div class="progress-bar" :style="{ width: currentTask.progress + '%' }"></div>
-        </div>
-        <div class="task-info">
-          <span class="task-step">{{ currentTask.step }}</span>
-          <span class="task-percent">{{ currentTask.progress }}%</span>
-        </div>
+    </div>
+
+    <!-- Progress -->
+    <div v-if="currentTask" class="progress-section">
+      <div class="progress-url">{{ formatUrl(currentTask.url) }}</div>
+      <div class="progress-bar-container">
+        <div class="progress-bar" :style="{ width: currentTask.progress + '%' }"></div>
       </div>
-    </section>
+      <div class="progress-info">
+        <span>{{ currentTask.step }}</span>
+        <span>{{ currentTask.progress }}%</span>
+      </div>
+    </div>
 
     <!-- Tabs -->
     <div class="tabs">
@@ -505,26 +517,11 @@ onUnmounted(() => {
       </button>
     </div>
 
-    <!-- Queue Section -->
+    <!-- Queue -->
     <section v-if="activeTab === 'queue'" class="section">
       <div v-if="queue.length === 0" class="empty-state">
-        <div class="empty-icon">📥</div>
-        <div class="empty-title">準備下載 Reels</div>
-        <div class="empty-desc">在上方貼上 Instagram Reel 網址，即可開始下載你喜歡的影片</div>
-
-        <div class="empty-hint">
-          <div class="hint-title">💡 支援的網址格式</div>
-          <div class="hint-list">
-            <div>• https://www.instagram.com/reel/xxxxx</div>
-            <div>• https://www.instagram.com/p/xxxxx</div>
-          </div>
-        </div>
-
-        <div class="empty-actions">
-          <button class="btn btn-secondary btn-small" @click="activeTab = 'settings'">
-            ⚙️ 下載設定
-          </button>
-        </div>
+        <div class="empty-title">佇列是空的</div>
+        <div class="empty-desc">貼上網址開始下載</div>
       </div>
 
       <div v-else>
@@ -538,41 +535,32 @@ onUnmounted(() => {
                 <div class="mini-progress">
                   <div class="mini-progress-bar" :style="{ width: (item.progress_percent || 0) + '%' }"></div>
                 </div>
-                <span>{{ item.progress || '處理中...' }}</span>
+                <span>{{ item.progress || '處理中' }}</span>
               </template>
-              <template v-else-if="item.status === 'completed'">完成 - {{ item.filename }}</template>
+              <template v-else-if="item.status === 'completed'">{{ item.filename }}</template>
               <template v-else-if="item.status === 'failed'">{{ item.error_message }}</template>
             </div>
           </div>
-          <div class="queue-actions">
-            <button
-              class="btn btn-secondary btn-small"
-              @click="removeItem(item.id)"
-              :disabled="item.status === 'processing'"
-            >
-              刪除
-            </button>
-          </div>
+          <button
+            class="btn btn-secondary btn-small"
+            @click="removeItem(item.id)"
+            :disabled="item.status === 'processing'"
+          >刪除</button>
         </div>
       </div>
     </section>
 
-    <!-- History Section -->
+    <!-- History -->
     <section v-if="activeTab === 'history'" class="section">
-      <div class="section-header" v-if="history.length > 0">
-        <span></span>
-        <button class="btn btn-secondary btn-small" @click="clearHistory">
-          清除歷史
-        </button>
-      </div>
-
       <div v-if="history.length === 0" class="empty-state">
-        <div class="empty-icon">📜</div>
-        <div class="empty-title">還沒有下載紀錄</div>
-        <div class="empty-desc">完成下載後會顯示在這裡</div>
+        <div class="empty-title">沒有紀錄</div>
       </div>
 
       <div v-else>
+        <div class="section-header">
+          <span></span>
+          <button class="btn btn-secondary btn-small" @click="clearHistory">清除</button>
+        </div>
         <div v-for="item in history" :key="item.id" class="queue-item">
           <span class="queue-icon">{{ getStatusIcon(item.status) }}</span>
           <div class="queue-content">
@@ -582,11 +570,7 @@ onUnmounted(() => {
               <template v-else>{{ item.error_message }}</template>
             </div>
           </div>
-          <div class="queue-actions">
-            <button v-if="item.status === 'failed'" class="btn btn-secondary btn-small" @click="retryItem(item.id)">
-              重試
-            </button>
-          </div>
+          <button v-if="item.status === 'failed'" class="btn btn-secondary btn-small" @click="retryItem(item.id)">重試</button>
         </div>
       </div>
     </section>

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReelPull - Download Instagram Reels</title>
+  <meta name="description" content="快速下載 Instagram Reels 影片，支援批量下載整個帳號的所有 Reels">
+  <link rel="icon" type="image/svg+xml" href="/vite.svg">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #000;
+      color: #ededed;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* Nav */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #1a1a1a;
+    }
+
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .nav-links a {
+      font-size: 0.9rem;
+      color: #888;
+      transition: color 0.15s;
+    }
+
+    .nav-links a:hover {
+      color: #fff;
+    }
+
+    .btn {
+      padding: 0.6rem 1.25rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: none;
+    }
+
+    .btn-primary {
+      background: #fff;
+      color: #000;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: #fff;
+      border: 1px solid #333;
+    }
+
+    .btn-secondary:hover {
+      border-color: #555;
+    }
+
+    /* Hero */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 6rem 2rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.4rem 0.875rem;
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 50px;
+      font-size: 0.8rem;
+      color: #888;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 8vw, 5rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      max-width: 800px;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      color: #888;
+      max-width: 500px;
+      margin-bottom: 2.5rem;
+      line-height: 1.6;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .hero-buttons .btn {
+      padding: 0.875rem 2rem;
+      font-size: 1rem;
+    }
+
+    /* Features */
+    .features {
+      padding: 6rem 2rem;
+      border-top: 1px solid #1a1a1a;
+    }
+
+    .features-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .features-header h2 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .features-header p {
+      color: #888;
+      font-size: 1.1rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .feature-card {
+      background: #0a0a0a;
+      border: 1px solid #1a1a1a;
+      border-radius: 12px;
+      padding: 2rem;
+    }
+
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .feature-card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-card p {
+      color: #888;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    /* How it works */
+    .how-it-works {
+      padding: 6rem 2rem;
+      border-top: 1px solid #1a1a1a;
+    }
+
+    .how-it-works h2 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 4rem;
+    }
+
+    .steps {
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      flex-wrap: wrap;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .step {
+      flex: 1;
+      min-width: 200px;
+      max-width: 250px;
+      text-align: center;
+    }
+
+    .step-number {
+      width: 48px;
+      height: 48px;
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0 auto 1rem;
+    }
+
+    .step h3 {
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .step p {
+      color: #888;
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+
+    /* CTA */
+    .cta {
+      padding: 6rem 2rem;
+      text-align: center;
+      border-top: 1px solid #1a1a1a;
+    }
+
+    .cta h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .cta p {
+      color: #888;
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+    }
+
+    /* Footer */
+    footer {
+      padding: 2rem;
+      text-align: center;
+      border-top: 1px solid #1a1a1a;
+      color: #555;
+      font-size: 0.85rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      nav {
+        padding: 1rem;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .hero {
+        padding: 5rem 1.5rem;
+      }
+
+      .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+        max-width: 300px;
+      }
+
+      .steps {
+        gap: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="logo">ReelPull</div>
+    <div class="nav-links">
+      <a href="#features">功能</a>
+      <a href="#how-it-works">使用方式</a>
+    </div>
+    <a href="/" class="btn btn-primary">開始使用</a>
+  </nav>
+
+  <section class="hero">
+    <div class="badge">✨ 免費使用</div>
+    <h1>下載 Instagram Reels</h1>
+    <p>貼上連結，一鍵下載。支援批量下載整個帳號的所有 Reels。</p>
+    <div class="hero-buttons">
+      <a href="/" class="btn btn-primary">立即下載</a>
+      <a href="#features" class="btn btn-secondary">了解更多</a>
+    </div>
+  </section>
+
+  <section class="features" id="features">
+    <div class="features-header">
+      <h2>功能特色</h2>
+      <p>簡單、快速、無廣告</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>快速下載</h3>
+        <p>貼上網址，幾秒內完成下載。不需要註冊或登入。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📦</div>
+        <h3>批量下載</h3>
+        <p>一次貼上多個網址，或輸入帳號名稱下載所有 Reels。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎬</div>
+        <h3>高畫質</h3>
+        <p>下載原始畫質的影片，無壓縮、無浮水印。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📝</div>
+        <h3>輕鬆管理</h3>
+        <p>預覽已下載的影片，快速重新命名整理。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="how-it-works" id="how-it-works">
+    <h2>如何使用</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <h3>複製網址</h3>
+        <p>在 Instagram 複製 Reel 的分享連結</p>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <h3>貼上網址</h3>
+        <p>把連結貼到 ReelPull 輸入框</p>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <h3>下載完成</h3>
+        <p>影片自動下載到你的裝置</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta">
+    <h2>開始下載</h2>
+    <p>免費、快速、無需註冊</p>
+    <a href="/" class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;">
+      立即使用 →
+    </a>
+  </section>
+
+  <footer>
+    <p>© 2024 ReelPull. 僅供個人使用。</p>
+  </footer>
+</body>
+</html>

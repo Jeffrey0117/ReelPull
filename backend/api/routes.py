@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import List
@@ -8,6 +8,7 @@ import os
 
 from models import Download, Setting, get_db
 from schemas import UrlInput, DownloadResponse, SettingUpdate, SettingsResponse
+from services.scraper import scraper
 
 router = APIRouter(prefix="/api", tags=["api"])
 
@@ -231,3 +232,64 @@ def delete_video(filename: str, db: Session = Depends(get_db)):
 
     os.remove(file_path)
     return {"message": "Deleted successfully"}
+
+
+# ========== Scraper Endpoints ==========
+
+@router.get("/scrape/{username}")
+def scrape_account(username: str, max_reels: int = 50):
+    """爬取帳號的所有 Reels URL"""
+    # 清理 username
+    username = username.strip().lstrip("@")
+
+    if not username:
+        raise HTTPException(status_code=400, detail="請輸入帳號名稱")
+
+    result = scraper.get_reels_urls(username, max_reels=max_reels)
+
+    if "error" in result and result.get("urls", []) == []:
+        raise HTTPException(status_code=400, detail=result["error"])
+
+    return result
+
+
+@router.post("/scrape/{username}/download")
+def scrape_and_queue(username: str, max_reels: int = 50, db: Session = Depends(get_db)):
+    """爬取帳號的 Reels 並全部加入下載佇列"""
+    username = username.strip().lstrip("@")
+
+    if not username:
+        raise HTTPException(status_code=400, detail="請輸入帳號名稱")
+
+    # 爬取 URLs
+    result = scraper.get_reels_urls(username, max_reels=max_reels)
+
+    if "error" in result and not result.get("urls"):
+        raise HTTPException(status_code=400, detail=result["error"])
+
+    urls = result.get("urls", [])
+    added = []
+
+    for url in urls:
+        # 檢查是否已存在
+        existing = db.query(Download).filter(
+            Download.url == url,
+            Download.status.in_(["pending", "processing"])
+        ).first()
+
+        if existing:
+            continue
+
+        download = Download(url=url, status="pending")
+        db.add(download)
+        db.commit()
+        db.refresh(download)
+        added.append(download)
+
+    return {
+        "username": username,
+        "found": len(urls),
+        "added": len(added),
+        "skipped": len(urls) - len(added),
+        "downloads": [{"id": d.id, "url": d.url} for d in added[:10]]  # 只返回前 10 個
+    }
