@@ -2,7 +2,7 @@
 
 # ReelPull
 
-**批次下載 Instagram Reels，即時追蹤下載進度。**
+**快速、簡單地儲存 Instagram Reels。**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](../LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://python.org)

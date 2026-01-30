@@ -2,7 +2,7 @@
 
 # ReelPull
 
-**Batch download Instagram Reels with real-time progress tracking.**
+**Save Instagram Reels. Fast and simple.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://python.org)
