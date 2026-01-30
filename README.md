@@ -1,78 +1,130 @@
+<div align="center">
+
 # ReelPull
 
-Instagram Reels 下載工具 - Web 版本
+**Batch download Instagram Reels with real-time progress tracking.**
 
-## 功能
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://python.org)
+[![Vue](https://img.shields.io/badge/Vue-3-4FC08D?logo=vuedotjs&logoColor=white)](https://vuejs.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 
-- 批次下載 Instagram Reels 影片
-- 即時進度顯示（WebSocket）
-- 下載佇列管理
-- 歷史紀錄
-- Toast 通知系統
-- 深色主題 UI
+[English](#features) | [繁體中文](docs/README_zh-TW.md)
 
-## 技術棧
+</div>
 
-### 後端
-- FastAPI
-- SQLite + SQLAlchemy
-- Selenium + ChromeDriver
-- WebSocket
+---
 
-### 前端
-- Vue 3 + Vite
-- 原生 CSS
+## Features
 
-## 快速開始
+- **Batch Download** — Queue multiple Instagram Reels and download them all at once
+- **Real-time Progress** — Live status updates via WebSocket
+- **Queue Management** — Add, remove, and retry downloads
+- **Download History** — Browse and manage previously downloaded videos
+- **Toast Notifications** — Non-intrusive status alerts
+- **Dark Theme UI** — Modern dark interface built with Vue 3
 
-### 1. 安裝後端依賴
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Backend** | FastAPI, SQLite + SQLAlchemy, Selenium + ChromeDriver, WebSocket |
+| **Frontend** | Vue 3, Vite, Native CSS |
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.10+
+- Node.js 18+
+- Google Chrome (for Selenium)
+
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/Jeffrey0117/reelpull.git
+cd reelpull
+
+# Backend
 cd backend
 pip install -r requirements.txt
-```
 
-### 2. 啟動後端
-
-```bash
-cd backend
-python main.py
-```
-
-後端會在 http://localhost:8000 啟動
-API 文檔：http://localhost:8000/docs
-
-### 3. 安裝前端依賴
-
-```bash
-cd frontend
+# Frontend
+cd ../frontend
 npm install
 ```
 
-### 4. 啟動前端
+### Running
 
 ```bash
+# Start the backend (http://localhost:8000)
+cd backend
+python main.py
+
+# Start the frontend (http://localhost:5173)
 cd frontend
 npm run dev
 ```
 
-前端會在 http://localhost:5173 啟動
+> API docs available at [http://localhost:8000/docs](http://localhost:8000/docs)
 
-## 專案結構
+## Usage
+
+1. Open [http://localhost:5173](http://localhost:5173)
+2. Paste one or more Instagram Reel URLs (one per line)
+3. Click **Add to Queue**
+4. Click **Start Download**
+5. Monitor real-time progress
+
+### Supported URL Formats
+
+```
+https://www.instagram.com/reel/xxxxx
+https://www.instagram.com/p/xxxxx
+```
+
+## API Reference
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/queue` | Add URLs to queue |
+| `GET` | `/api/queue` | Get current queue |
+| `DELETE` | `/api/queue/{id}` | Remove queue item |
+| `POST` | `/api/queue/{id}/retry` | Retry failed item |
+| `GET` | `/api/history` | Get download history |
+| `DELETE` | `/api/history` | Clear history |
+| `GET` | `/api/settings` | Get settings |
+| `PUT` | `/api/settings` | Update settings |
+| `POST` | `/api/download/start` | Start downloading |
+| `POST` | `/api/download/stop` | Stop downloading |
+| `GET` | `/api/download/status` | Get download status |
+
+**WebSocket:** `ws://localhost:8000/ws`
+
+## Configuration
+
+| Setting | Description |
+|---------|-------------|
+| Download Path | Directory where videos are saved |
+| Headless Mode | Run browser without visible window |
+| Auto Remove | Remove items from queue after completion |
+
+## Project Structure
 
 ```
 reelpull/
 ├── backend/
-│   ├── main.py              # FastAPI 主程式
-│   ├── schemas.py           # Pydantic 資料模型
+│   ├── main.py                # FastAPI entry point
+│   ├── schemas.py             # Pydantic models
 │   ├── requirements.txt
 │   ├── api/
-│   │   ├── routes.py        # REST API 路由
-│   │   └── websocket.py     # WebSocket 管理
+│   │   ├── routes.py          # REST API routes
+│   │   └── websocket.py       # WebSocket handler
 │   ├── models/
-│   │   └── database.py      # SQLite 模型
+│   │   └── database.py        # SQLite models
 │   └── services/
-│       └── downloader.py    # Selenium 下載邏輯
+│       └── downloader.py      # Selenium download logic
 ├── frontend/
 │   ├── package.json
 │   ├── vite.config.js
@@ -85,45 +137,6 @@ reelpull/
 └── README.md
 ```
 
-## API
-
-| Method | Path | 說明 |
-|--------|------|------|
-| POST | /api/queue | 新增網址到佇列 |
-| GET | /api/queue | 取得目前佇列 |
-| DELETE | /api/queue/{id} | 刪除佇列項目 |
-| POST | /api/queue/{id}/retry | 重試失敗項目 |
-| GET | /api/history | 取得歷史紀錄 |
-| DELETE | /api/history | 清除歷史 |
-| GET | /api/settings | 取得設定 |
-| PUT | /api/settings | 更新設定 |
-| POST | /api/download/start | 開始下載 |
-| POST | /api/download/stop | 停止下載 |
-| GET | /api/download/status | 取得狀態 |
-
-WebSocket: `ws://localhost:8000/ws`
-
-## 使用方式
-
-1. 開啟 http://localhost:5173
-2. 貼上 Instagram Reel 網址（支援多行）
-3. 點擊「加入佇列」
-4. 點擊「開始下載」
-5. 觀看即時進度
-
-## 支援的網址格式
-
-- `https://www.instagram.com/reel/xxxxx`
-- `https://www.instagram.com/p/xxxxx`
-
-## 設定
-
-| 設定 | 說明 |
-|------|------|
-| 下載路徑 | 影片存放位置 |
-| 無頭模式 | 隱藏瀏覽器視窗 |
-| 自動移除 | 完成後從佇列移除 |
-
 ## License
 
-MIT
+[MIT](LICENSE)
