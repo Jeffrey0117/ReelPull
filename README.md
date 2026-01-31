@@ -4,7 +4,7 @@
 
 **Save Instagram Reels. Fast and simple.**
 
-A core component of [AutoReel](https://github.com/Jeffrey0117/video-translate-project).
+A core component of [AutoReel](https://github.com/Jeffrey0117/AutoReel).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://python.org)
